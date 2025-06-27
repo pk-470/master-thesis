@@ -1,0 +1,17 @@
+__pycache__
+*.egg-info
+
+.*
+!.vscode
+
+checkpoints*
+dataset
+wandb
+
+*.csv
+*.out
+*.pkl
+*.pt
+*.zip
+
+SETUP_LOCAL.md

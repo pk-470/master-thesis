@@ -1,0 +1,42 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=70"]
+
+[project]
+name = "spec_mamba"
+version = "1.0"
+readme = "README.md"
+requires-python = ">=3.11"
+dynamic = ["dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/pk-470/master-thesis"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.pylint."messages control"]
+disable = [
+    "arguments-differ",
+    "bare-except",
+    "fixme",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "missing-module-docstring",
+    "no-member",
+    "not-callable",
+    "redefined-builtin",
+    "redefined-outer-name",
+    "too-many-ancestors",
+    "too-many-branches",
+    "too-many-positional-arguments",
+    "too-many-statements",
+    "unspecified-encoding",
+    "unused-argument",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

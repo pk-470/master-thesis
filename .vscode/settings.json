@@ -1,0 +1,18 @@
+{
+  "files.exclude": {
+    "__pycache__": true,
+    "**/*.egg-info": true
+  },
+  "python.analysis.exclude": [
+    "**/node_modules",
+    "**/*.egg-info",
+    "**/__pycache__",
+    ".git",
+    "**/.*",
+    "dataset",
+    "checkpoints",
+    "wandb"
+  ],
+  "jupyter.notebookFileRoot": "${workspaceFolder}",
+  "terminal.integrated.shellIntegration.enabled": false
+}
