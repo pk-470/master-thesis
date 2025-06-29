@@ -12,19 +12,15 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "temporal"
-run = "ssast-mae-time-mse"
+run = "ssast-cont"
 
-lr = 1e-3
-epochs = 80
+lr = 5e-4
+epochs = 60
 batch_size = 64
 model_size = "tiny"
-labels = [
-    "Time_of_Day_sin",
-    "Time_of_Day_cos",
-    # "Day_of_Year_sin",
-    # "Day_of_Year_cos",
-]
-devices = [3]
+labels = ["Time_of_Day_sin", "Time_of_Day_cos"]
+devices = [4]
+
 
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
 
@@ -42,8 +38,7 @@ PARAMS = Params(
         num_heads=SSAST_DEFAULT_CONFIG[model_size]["num_heads"],
         mlp_ratio=4,
         mask_ratio=0.0,
-        drop_path_rate=0.0,
-        pos_drop_rate=0.0,
+        mask_token_type="noise",
         clf_dropout=0.3,
         clf_hidden_features=SSAST_DEFAULT_CONFIG[model_size]["embed_dim"],
         cls_position="none",
@@ -52,8 +47,8 @@ PARAMS = Params(
         output_type="mean",
     ),
     data_args=DataArgs(
-        data_location=SPECTROGRAMS_1C_LOCATION,
-        splits_dir=SPEC_1C_TARGETS_SPLITS_DIR,
+        data_location=DATA_LOCATION,
+        splits_dir=TARGETS_SPLITS_DIR,
         processor_type=SpecProcessor,
         labels=labels,
         labels_dtype=np.float32,
@@ -76,15 +71,18 @@ PARAMS = Params(
             "max_lr": lr,
             "epochs": epochs,
             "steps_per_epoch": get_number_of_steps(
-                SPEC_1C_TARGETS_SPLITS_DIR,
-                batch_size=batch_size,
-                # num_devices=len(devices),
+                TARGETS_SPLITS_DIR, batch_size=batch_size, num_devices=len(devices)
             ),
             "pct_start": 0.3,
         },
         lr_scheduler_config={"interval": "step"},
         checkpoint_path=get_checkpoint_path(
-            CHECKPOINTS_LOCATION, "SSAST", "foundation", "ssast-mae", weights_only=True
+            CHECKPOINTS_LOCATION,
+            "SSAST",
+            "contrastive",
+            "ssast-cont",
+            mode="best",
+            weights_only=True,
         ),
         freeze_pretrained=True,
         devices=devices,

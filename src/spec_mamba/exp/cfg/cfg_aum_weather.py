@@ -12,16 +12,17 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "weather"
-run = "bimamba-cls-mae"
+run = "bimamba-cont"
 
 lr = 5e-4
-epochs = 80
+epochs = 40
 batch_size = 64
 model_size = "tiny"
 labels = ["precipRate_label", "windspeedAvg_label"]
 devices = [4]
 
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
+
 
 PARAMS = Params(
     train_module_type=CLFModule,
@@ -39,7 +40,7 @@ PARAMS = Params(
         drop_path_rate=0.0,
         clf_dropout=0.3,
         clf_hidden_features=AUDIO_MAMBA_DEFAULT_CONFIG[model_size]["embed_dim"],
-        cls_position="middle",
+        cls_position="none",
         use_pred_head=False,
         use_rms_norm=True,
         fused_add_norm=True,
@@ -47,8 +48,8 @@ PARAMS = Params(
         output_type="mean",
     ),
     data_args=DataArgs(
-        data_location=SPECTROGRAMS_1C_LOCATION,
-        splits_dir=SPEC_1C_TARGETS_SPLITS_DIR,
+        data_location=DATA_LOCATION,
+        splits_dir=TARGETS_SPLITS_DIR,
         processor_type=SpecProcessor,
         labels=labels,
         labels_dtype=np.float32,
@@ -71,9 +72,7 @@ PARAMS = Params(
             "max_lr": lr,
             "epochs": epochs,
             "steps_per_epoch": get_number_of_steps(
-                SPEC_1C_TARGETS_SPLITS_DIR,
-                batch_size=batch_size,
-                num_devices=len(devices),
+                TARGETS_SPLITS_DIR, batch_size=batch_size, num_devices=len(devices)
             ),
             "pct_start": 0.3,
         },
@@ -81,8 +80,9 @@ PARAMS = Params(
         checkpoint_path=get_checkpoint_path(
             CHECKPOINTS_LOCATION,
             "AudioMamba",
-            "foundation",
-            "bimamba-cls-mae",
+            "contrastive",
+            "bimamba-cont",
+            mode="best",
             weights_only=True,
         ),
         freeze_pretrained=True,

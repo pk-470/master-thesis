@@ -76,7 +76,7 @@ def load_and_freeze_state_dict(
     model: ModelTypeVar,
     checkpoint_path: str,
     strict: bool = True,
-    freeze_pretrained: bool = False,
+    freeze_pretrained: bool | list[str] = False,
     load_fn: Optional[Callable[[str], OrderedDict]] = None,
 ) -> ModelTypeVar:
     """Load and optionally freeze a pretrained state dict."""
@@ -94,8 +94,17 @@ def load_and_freeze_state_dict(
     model.load_state_dict(pretrained_state_dict, strict=strict)
 
     if freeze_pretrained:
+        if isinstance(freeze_pretrained, list):
+            freeze_names = set(
+                name
+                for name in pretrained_state_dict.keys()
+                if any(name.startswith(x) for x in freeze_pretrained)
+            )
+        else:
+            freeze_names = set(pretrained_state_dict.keys())
+
         for name, param in model.named_parameters():
-            if name in pretrained_state_dict:
+            if name in freeze_names:
                 param.requires_grad = False
 
     return model

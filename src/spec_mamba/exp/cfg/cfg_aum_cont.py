@@ -1,7 +1,6 @@
 """Contrastive learning experiment parameters."""
 
 import torch.nn as nn
-from lightning.pytorch.strategies import DDPStrategy
 from torch.optim.lr_scheduler import OneCycleLR
 
 from spec_mamba.data import *
@@ -12,9 +11,9 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "contrastive"
-run = "bimamba-cont-temp=0.08"
+run = "bimamba-cont"
 
-lr = 1e-3
+lr = 2e-4
 epochs = 100
 batch_size = 64
 model_size = "tiny"
@@ -23,11 +22,6 @@ devices = [1, 2, 3, 4]
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
 batch_transform = nn.Sequential(SpecBatchToContrastive(), SpecBatchContrastiveMask(104))
 
-steps_per_epoch = get_number_of_steps(
-    CONTRASTIVE_SPLITS_DIR,
-    batch_size,
-    num_devices=len(devices),
-)
 
 PARAMS = Params(
     train_module_type=ContModule,
@@ -40,7 +34,7 @@ PARAMS = Params(
         depth=AUDIO_MAMBA_DEFAULT_CONFIG[model_size]["depth"],
         ssm_cfg=SSM_CONFIG,
         mask_ratio=0.0,
-        mask_token_type="zeros",
+        mask_token_type="noise",
         head_drop_rate=0.3,
         cls_position="none",
         use_pred_head=True,
@@ -64,7 +58,7 @@ PARAMS = Params(
     ),
     train_args=TrainArgs(
         config_path=__file__,
-        loss=InfoNCELoss(temperature=0.08),
+        loss=InfoNCELoss(temperature=0.01),
         lr=lr,
         max_epochs=epochs,
         project=project,
@@ -74,22 +68,15 @@ PARAMS = Params(
         scheduler_kwargs={
             "max_lr": lr,
             "epochs": epochs,
-            "steps_per_epoch": steps_per_epoch,
-            "pct_start": 0.1,
+            "steps_per_epoch": get_number_of_steps(
+                CONTRASTIVE_SPLITS_DIR, batch_size, num_devices=len(devices)
+            ),
+            "pct_start": 0.3,
         },
         lr_scheduler_config={"interval": "step"},
         trainer_kwargs={
             "gradient_clip_val": 1.0,
         },
         devices=devices,
-        strategy=DDPStrategy(process_group_backend="gloo"),
-        checkpoint_path=get_checkpoint_path(
-            CHECKPOINTS_LOCATION,
-            "AudioMamba",
-            "contrastive",
-            "bimamba-cont-temp=0.1",
-            weights_only=True,
-        ),
-        freeze_pretrained=False,
     ),
 )

@@ -30,7 +30,11 @@ class CLFModule(TrainModule):
                 self.train_args.checkpoint_path,
                 strict=False,
                 freeze_pretrained=self.train_args.freeze_pretrained,
-                load_fn=load_backbone_from_checkpoint,
+                load_fn=(
+                    load_backbone_from_checkpoint
+                    if self.train_args.load_fn is None
+                    else self.train_args.load_fn
+                ),
             )
 
         return model

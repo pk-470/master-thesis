@@ -11,15 +11,16 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "foundation"
-run = "ssast-all_data-tiny-MSE"
+run = "ssast-mse"
 
-lr = 2e-4
+lr = 5e-4
 epochs = 80
-batch_size = 128
+batch_size = 256
 model_size = "tiny"
-# devices = [4]
+devices = [4]
 
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
+
 
 PARAMS = Params(
     train_module_type=RecModule,
@@ -62,13 +63,11 @@ PARAMS = Params(
             "max_lr": lr,
             "epochs": epochs,
             "steps_per_epoch": get_number_of_steps(
-                FOUNDATION_SPLITS_DIR,
-                batch_size=batch_size,
-                # num_devices=len(devices),
+                FOUNDATION_SPLITS_DIR, batch_size=batch_size, num_devices=len(devices)
             ),
             "pct_start": 0.3,
         },
         lr_scheduler_config={"interval": "step"},
-        # devices=devices,
+        devices=devices,
     ),
 )

@@ -11,16 +11,17 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "contrastive"
-run = "ssast-all_data-tiny"
+run = "ssast-cont"
 
 lr = 2e-4
 epochs = 100
 batch_size = 128
 model_size = "tiny"
-devices = [4]
+devices = [2, 4]
 
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
 batch_transform = nn.Sequential(SpecBatchToContrastive(), SpecBatchContrastiveMask(104))
+
 
 PARAMS = Params(
     train_module_type=ContModule,
@@ -34,6 +35,7 @@ PARAMS = Params(
         num_heads=SSAST_DEFAULT_CONFIG[model_size]["num_heads"],
         mlp_ratio=4,
         mask_ratio=0.0,
+        mask_token_type="noise",
         cls_position="none",
         use_pred_head=True,
         use_rms_norm=True,
@@ -65,9 +67,7 @@ PARAMS = Params(
             "max_lr": lr,
             "epochs": epochs,
             "steps_per_epoch": get_number_of_steps(
-                CONTRASTIVE_SPLITS_DIR,
-                batch_size,
-                num_devices=len(devices),
+                CONTRASTIVE_SPLITS_DIR, batch_size, num_devices=len(devices)
             ),
             "pct_start": 0.3,
         },

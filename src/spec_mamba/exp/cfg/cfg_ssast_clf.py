@@ -20,14 +20,14 @@ from spec_mamba.models import *
 from spec_mamba.training import *
 
 project = "binary"
-run = "ssast-mse-mlp"
+run = "ssast-cont"
 
 lr = 1e-3
 epochs = 100
 batch_size = 64
 model_size = "tiny"
 label = "Bird_label"
-devices = [3]
+devices = [2]
 
 transform = SpecNormalize(db_min=DB_MIN, db_max=DB_MAX)
 
@@ -40,6 +40,7 @@ metrics = MetricCollection(
         "average_precision": MulticlassAveragePrecision(num_classes=2, average="none"),
     }
 )
+
 
 PARAMS = Params(
     train_module_type=CLFModule,
@@ -54,8 +55,7 @@ PARAMS = Params(
         num_heads=SSAST_DEFAULT_CONFIG[model_size]["num_heads"],
         mlp_ratio=4,
         mask_ratio=0.0,
-        drop_path_rate=0.0,
-        pos_drop_rate=0.0,
+        mask_token_type="noise",
         clf_dropout=0.3,
         clf_hidden_features=SSAST_DEFAULT_CONFIG[model_size]["embed_dim"],
         cls_position="none",
@@ -64,8 +64,8 @@ PARAMS = Params(
         output_type="mean",
     ),
     data_args=DataArgs(
-        data_location=SPECTROGRAMS_1C_LOCATION,
-        splits_dir=SPEC_1C_TARGETS_SPLITS_DIR,
+        data_location=DATA_LOCATION,
+        splits_dir=TARGETS_SPLITS_DIR,
         processor_type=SpecProcessor,
         labels=label,
         labels_dtype=np.int64,
@@ -91,13 +91,18 @@ PARAMS = Params(
             "threshold": 1e-6,
         },
         lr_scheduler_config={"monitor": "val_loss"},
-        checkpoint_path=get_checkpoint_path(
-            CHECKPOINTS_LOCATION, "SSAST", "foundation", "ssast-mse", weights_only=True
-        ),
-        freeze_pretrained=True,
         train_metrics=metrics,
         val_metrics=metrics,
         test_metrics=metrics,
+        checkpoint_path=get_checkpoint_path(
+            CHECKPOINTS_LOCATION,
+            "SSAST",
+            "contrastive",
+            "ssast-cont",
+            mode="best",
+            weights_only=True,
+        ),
+        freeze_pretrained=True,
         devices=devices,
     ),
 )

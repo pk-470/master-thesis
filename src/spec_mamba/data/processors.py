@@ -178,19 +178,22 @@ class DualSpecProcessor(WavProcessor):
 
     def process(self, idx: int) -> tuple[SpecMetadata, SpecMetadata]:
         waveform, sample_rate, item = self._load_waveform(idx)
-        spectrogram = compute_spectrogram(
-            self.mel_scale, waveform, sample_rate, self.n_fft, self.spec_kwargs
-        )
+
+        with torch.no_grad():
+            spectrogram = compute_spectrogram(
+                self.mel_scale, waveform, sample_rate, self.n_fft, self.spec_kwargs
+            ).detach()
 
         if self.wav_transform is not None:
             waveform = self.wav_transform(waveform)
 
-        spectrogram_proc = compute_spectrogram(
-            self.mel_scale, waveform, sample_rate, self.n_fft, self.spec_kwargs
-        )
-
-        if self.spec_transform is not None:
-            spectrogram_proc = self.spec_transform(spectrogram_proc)
+        with torch.no_grad():
+            spectrogram_proc = compute_spectrogram(
+                self.mel_scale, waveform, sample_rate, self.n_fft, self.spec_kwargs
+            )
+            if self.spec_transform is not None:
+                spectrogram_proc = self.spec_transform(spectrogram_proc)
+            spectrogram_proc = spectrogram_proc.detach()
 
         return (
             SpecMetadata(sample_id=item["time"], spectrogram=spectrogram),

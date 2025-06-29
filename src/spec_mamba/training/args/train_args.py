@@ -34,7 +34,7 @@ class TrainArgs:
     test_metrics: Optional[MetricCollection] = None
     checkpoint_path: Optional[str] = None
     load_fn: Optional[Callable[[str], OrderedDict]] = None
-    freeze_pretrained: bool = False
+    freeze_pretrained: bool | list[str] = False
     devices: list[int] | str | int = "auto"
     strategy: str | Strategy = "auto"
     callbacks: Optional[list[Callback]] = None

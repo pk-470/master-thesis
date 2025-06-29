@@ -137,9 +137,9 @@ class TrainModule(pl.LightningModule):
             batch_size=self.data_args.batch_size,
             shuffle=(mode == "train"),
             num_workers=self.data_args.num_workers,
-            # persistent_workers=True,
-            prefetch_factor=4,
-            # pin_memory=True,
+            persistent_workers=True,
+            prefetch_factor=20,
+            pin_memory=True,
             **dataloader_kwargs,
         )
 
